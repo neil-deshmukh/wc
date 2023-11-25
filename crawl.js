@@ -1,13 +1,10 @@
 function normalizeURL(url){
-    url = url.replace('https://', '')
-    url = url.replace('http://', '')
-    url = url.replace('mailto:', '')
-    urlletters = url.split('')
-    if(urlletters[urlletters.length-1] == '/'){
-        urlletters = urlletters.slice(0, -1)
+    let urlObj = new URL(url)
+    let hostpath = `${urlObj.hostname}${urlObj.pathname}`
+    if(hostpath.slice(-1) == '/'){
+        hostpath = hostpath.slice(0, -1)
     }
-    url = urlletters.join('')
-    return url
+    return hostpath
 }
 
 function geturlfromhtml(htmlbody, baseURL){
@@ -17,36 +14,26 @@ function geturlfromhtml(htmlbody, baseURL){
     allas = dom.window.document.querySelectorAll('a')
     urls = []
     for(let as of allas){
-        if(as.href.includes('https') || as.href.includes('http') || as.href.includes('mailto')){
-            urls.push(as.href)
+        if(as.href[0] == '/'){
+            try {
+                urlObj = new URL(`${baseURL}${as.href}`)
+                urls.push(urlObj.href)
+            } catch(err) {
+                console.log(`Some thing went wrong in relative url section: ${err.message}`)
+            }
         } else{
-            urls.push(`${baseURL}${as.href}`)
+            try {
+                urlObj = new URL(as.href)
+                urls.push(urlObj.href)
+            } catch(err) {
+                console.log(`Some thing went wrong in absolute url section: ${err.message}`)
+            }
         }
     }
     return urls
 }
 
 async function crawlpage(baseURL, curURL, pages){
-    if(normalizeURL(curURL).includes(normalizeURL(baseURL))){
-        0;
-    } else {
-        return pages
-    }
-    const result = await fetch(curURL)
-    const htmlstr = await result.text()
-    let urls = geturlfromhtml(htmlstr, curURL)
-
-        
-    for(let url of urls){
-        if(pages[url]){
-            pages[url] = pages[url]++
-        } else{
-            pages[url] = '55' + 1
-        }
-        
-        pages = await crawlpage(baseURL, url, pages)
-    }
-    return pages
 }
 
 module.exports = {
