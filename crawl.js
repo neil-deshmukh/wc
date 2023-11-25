@@ -34,6 +34,25 @@ function geturlfromhtml(htmlbody, baseURL){
 }
 
 async function crawlpage(baseURL, curURL, pages){
+    try {
+        let res = await fetch(curURL)
+
+        if(res.status > 399){
+            console.log(`Error! in fetching with status code: ${res.status}`)
+            return
+        }
+
+        let contype = res.headers.get('content-type')
+        if(contype.includes('text/html')) {
+            console.log(`Error! Non html response found`)
+            return
+        }
+
+        let result = await res.text()
+
+    } catch(err) {
+        console.log(`Something went wrong while fetching: ${err.message}`)
+    }
 }
 
 module.exports = {
